@@ -1,6 +1,7 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Appointment } from './appointment.entity';
 import { WorkingHours } from './working-hours.entity';
+import { User } from './user.entity';
 
 @Entity('masters')
 export class Master {
@@ -24,6 +25,10 @@ export class Master {
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
+
+  @OneToOne(() => User, (user) => user.master, { nullable: true })
+  @JoinColumn({ name: 'user_id' })
+  user: User | null;
 
   @OneToMany(() => Appointment, (appointment) => appointment.master)
   appointments: Appointment[];

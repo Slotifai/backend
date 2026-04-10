@@ -1,6 +1,7 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Appointment } from './appointment.entity';
 import { Review } from './review.entity';
+import { User } from './user.entity';
 
 @Entity('clients')
 export class Client {
@@ -21,6 +22,10 @@ export class Client {
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
+
+  @OneToOne(() => User, (user) => user.client, { nullable: true })
+  @JoinColumn({ name: 'user_id' })
+  user: User | null;
 
   @OneToMany(() => Appointment, (appointment) => appointment.client)
   appointments: Appointment[];
