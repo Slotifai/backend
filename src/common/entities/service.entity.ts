@@ -1,10 +1,14 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Appointment } from './appointment.entity';
+import { Master } from './master.entity';
 
 @Entity('services')
 export class Service {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ name: 'master_id' })
+  masterId: number;
 
   @Column({ length: 255 })
   name: string;
@@ -17,6 +21,10 @@ export class Service {
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
+
+  @ManyToOne(() => Master, (master) => master.services, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'master_id' })
+  master: Master;
 
   @OneToMany(() => Appointment, (appointment) => appointment.service)
   appointments: Appointment[];

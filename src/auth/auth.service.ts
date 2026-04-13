@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { createHash, randomBytes } from 'crypto';
@@ -17,7 +18,6 @@ import { UserRole } from '../common/enums/user-role';
 import { RegisterClientDto } from './dto/register-client.dto';
 import { RegisterMasterDto } from './dto/register-master.dto';
 import { LoginDto } from './dto/login.dto';
-import { MailService } from '../mail/mail.service';
 
 export interface TokenPair {
   accessToken: string;
@@ -26,13 +26,14 @@ export interface TokenPair {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly dataSource: DataSource,
     private readonly config: ConfigService,
-    private readonly mail: MailService,
   ) {}
 
   async registerClient(dto: RegisterClientDto): Promise<{ message: string }> {
@@ -59,7 +60,8 @@ export class AuthService {
       await manager.save(client);
     });
 
-    await this.sendVerifyEmail(dto.email, verifyToken);
+    const frontendUrl = this.config.get<string>('FRONTEND_URL', 'http://localhost:3000');
+    this.logger.log(`[DEV] Verify email link for ${dto.email}: ${frontendUrl}/verify-email?token=${verifyToken}`);
     return { message: 'Registration successful. Please check your email to verify your account.' };
   }
 
@@ -88,7 +90,8 @@ export class AuthService {
       await manager.save(master);
     });
 
-    await this.sendVerifyEmail(dto.email, verifyToken);
+    const frontendUrl = this.config.get<string>('FRONTEND_URL', 'http://localhost:3000');
+    this.logger.log(`[DEV] Verify email link for ${dto.email}: ${frontendUrl}/verify-email?token=${verifyToken}`);
     return { message: 'Registration successful. Please check your email to verify your account.' };
   }
 
@@ -179,9 +182,8 @@ export class AuthService {
 
     await this.userRepository.update(user.id, { resetTokenHash, resetTokenExpiresAt });
 
-    const frontendUrl = this.config.getOrThrow<string>('FRONTEND_URL');
-    const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
-    await this.mail.sendPasswordReset(email, resetLink);
+    const frontendUrl = this.config.get<string>('FRONTEND_URL', 'http://localhost:3000');
+    this.logger.log(`[DEV] Password reset link for ${email}: ${frontendUrl}/reset-password?token=${resetToken}`);
   }
 
   async resetPassword(resetToken: string, newPassword: string): Promise<void> {
@@ -247,9 +249,4 @@ export class AuthService {
     return { token, hash };
   }
 
-  private async sendVerifyEmail(email: string, token: string): Promise<void> {
-    const frontendUrl = this.config.getOrThrow<string>('FRONTEND_URL');
-    const verifyLink = `${frontendUrl}/verify-email?token=${token}`;
-    await this.mail.sendVerificationEmail(email, verifyLink);
-  }
 }

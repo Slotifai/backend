@@ -10,6 +10,7 @@ import { AppointmentNote } from './common/entities/appointment-note.entity';
 import { Review } from './common/entities/review.entity';
 import { User } from './common/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
+import { MastersModule } from './masters/masters.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { AuthModule } from './auth/auth.module';
       synchronize: true,
     }),
     AuthModule,
+    MastersModule,
   ],
 })
 export class AppModule {}
