@@ -26,13 +26,13 @@ export class User {
   @Column({ name: 'is_email_verified', default: false })
   isEmailVerified: boolean;
 
-  @Column({ name: 'email_verify_token_hash', length: 64, nullable: true, unique: true })
+  @Column({ name: 'email_verify_token_hash', type: 'varchar', length: 64, nullable: true, unique: true })
   emailVerifyTokenHash: string | null;
 
-  @Column({ name: 'refresh_token_hash', length: 255, nullable: true })
+  @Column({ name: 'refresh_token_hash', type: 'varchar', length: 255, nullable: true })
   refreshTokenHash: string | null;
 
-  @Column({ name: 'reset_token_hash', length: 64, nullable: true, unique: true })
+  @Column({ name: 'reset_token_hash', type: 'varchar', length: 64, nullable: true, unique: true })
   resetTokenHash: string | null;
 
   @Column({ name: 'reset_token_expires_at', type: 'timestamptz', nullable: true })

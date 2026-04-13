@@ -1,6 +1,7 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Appointment } from './appointment.entity';
 import { WorkingHours } from './working-hours.entity';
+import { Service } from './service.entity';
 import { User } from './user.entity';
 
 @Entity('masters')
@@ -35,4 +36,7 @@ export class Master {
 
   @OneToMany(() => WorkingHours, (wh) => wh.master)
   workingHours: WorkingHours[];
+
+  @OneToMany(() => Service, (service) => service.master)
+  services: Service[];
 }
