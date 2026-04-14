@@ -32,7 +32,8 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          prompt: 'Review this pull request. Analyze the code changes, identify potential issues, bugs, security vulnerabilities, and suggest improvements. Leave your review as comments on the PR.'
+          prompt: 'Review PR #${{ github.event.pull_request.number }}. Run `gh pr diff ${{ github.event.pull_request.number }}` to get the diff, analyze the changes, and post a review comment using `gh pr review ${{ github.event.pull_request.number }} --comment -b "<your review>"`. Focus on: code correctness, security, performance, and project conventions.'
+          allowed_tools: 'Bash,Read,Glob,Grep'
           show_full_output: true
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
