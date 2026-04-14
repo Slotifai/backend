@@ -11,6 +11,7 @@ import { Review } from './common/entities/review.entity';
 import { User } from './common/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { MastersModule } from './masters/masters.module';
+import { ClientsModule } from './clients/clients.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { MastersModule } from './masters/masters.module';
     }),
     AuthModule,
     MastersModule,
+    ClientsModule,
   ],
 })
 export class AppModule {}
