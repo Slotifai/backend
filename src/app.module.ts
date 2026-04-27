@@ -12,6 +12,7 @@ import { User } from './common/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { MastersModule } from './masters/masters.module';
 import { ClientsModule } from './clients/clients.module';
+import { AppointmentsModule } from './appointments/appointments.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { ClientsModule } from './clients/clients.module';
     AuthModule,
     MastersModule,
     ClientsModule,
+    AppointmentsModule,
   ],
 })
 export class AppModule {}
