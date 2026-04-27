@@ -41,7 +41,7 @@ export class AppointmentsService {
     const startTime = new Date(dto.startTime);
     const endTime = new Date(startTime.getTime() + service.durationMinutes * 60 * 1000);
 
-    const dayOfWeek = startTime.getDay();
+    const dayOfWeek = startTime.getUTCDay();
 
     const workingHours = await this.workingHoursRepository.findOne({
       where: { masterId: dto.masterId, dayOfWeek },
