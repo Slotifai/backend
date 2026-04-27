@@ -1,6 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Not, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Appointment } from '../common/entities/appointment.entity';
 import { AppointmentNote } from '../common/entities/appointment-note.entity';
 import { AppointmentStatus } from '../common/entities/appointmentStatus';
