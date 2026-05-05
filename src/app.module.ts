@@ -19,6 +19,7 @@ import {ReviewsModule} from './reviews/reviews.module';
 import {AdminModule} from './admin/admin.module';
 import {ScheduleModule} from '@nestjs/schedule';
 import {NotificationsModule} from './notifications/notifications.module';
+import {AiModule} from './ai/ai.module';
 
 @Module({
     imports: [
@@ -44,6 +45,7 @@ import {NotificationsModule} from './notifications/notifications.module';
         ReviewsModule,
         AdminModule,
         NotificationsModule,
+        AiModule,
     ],
 })
 export class AppModule {

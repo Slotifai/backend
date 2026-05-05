@@ -24,6 +24,7 @@
     "migration:show": "typeorm-ts-node-commonjs migration:show -d src/data-source.ts"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.0.1",
@@ -38,6 +39,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "grammy": "^1.41.1",
+    "groq-sdk": "^1.1.2",
     "helmet": "^8.1.0",
     "node-mailjet": "^6.0.11",
     "passport": "^0.7.0",
