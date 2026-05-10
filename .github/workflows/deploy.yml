@@ -1,0 +1,42 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Copy files to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "docker-compose.yml,Dockerfile,package*.json,src,tsconfig*.json,nest-cli.json"
+          target: /var/www/backend
+
+      - name: Deploy on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd /var/www/backend
+
+            if [ ! -f .env ]; then
+              echo "${{ secrets.ENV_FILE }}" > .env
+            fi
+
+            docker compose up -d db
+            docker compose --profile migrate run --rm migrator
+            docker compose up -d --build api
+            docker image prune -f

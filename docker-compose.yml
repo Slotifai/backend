@@ -18,9 +18,24 @@ services:
       timeout: 5s
       retries: 5
 
+  migrator:
+    container_name: slotifai-migrator
+    build:
+      context: .
+      target: migrator
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - migrate
+
   api:
     container_name: slotifai-backend
-    build: .
+    build:
+      context: .
+      target: production
     ports:
       - "3000:3000"
     env_file:
