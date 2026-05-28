@@ -86,7 +86,7 @@ export class MastersService {
         return {...master, ...(stats.get(masterId) ?? {rating: 0, reviewCount: 0, minPrice: null})};
     }
 
-    async getAvailability(masterId: number, date: string, serviceId: number): Promise<{ slots: string[] }> {
+    async getAvailability(masterId: number, date: string, serviceId: number, timezone = 'UTC'): Promise<{ slots: string[] }> {
         const master = await this.masterRepository.findOne({where: {id: masterId}});
         if (!master) throw new NotFoundException('Master not found');
 
@@ -122,11 +122,24 @@ export class MastersService {
             .andWhere('a.endTime > :dayStart', {dayStart})
             .getMany();
 
+        const now = new Date();
+        let tzOffsetMs = 0;
+        try {
+            const tzDate = new Date();
+            const localStr = tzDate.toLocaleString('en-US', {timeZone: timezone, hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'});
+            const tzLocal = new Date(localStr);
+            tzOffsetMs = tzDate.getTime() - tzLocal.getTime();
+        } catch {
+            tzOffsetMs = 0;
+        }
+
         const slots: string[] = [];
         for (let start = workStart; start + duration <= workEnd; start += 30) {
-            const slotEnd = start + duration;
             const slotStartDate = new Date(`${date}T${String(Math.floor(start / 60)).padStart(2, '0')}:${String(start % 60).padStart(2, '0')}:00.000Z`);
             const slotEndDate = new Date(slotStartDate.getTime() + duration * 60 * 1000);
+
+            const slotStartInClientTz = new Date(slotStartDate.getTime() + tzOffsetMs);
+            if (slotStartInClientTz <= now) continue;
 
             const overlap = booked.some(
                 (a) => a.startTime < slotEndDate && a.endTime > slotStartDate,
@@ -135,8 +148,6 @@ export class MastersService {
             if (!overlap) {
                 slots.push(`${String(Math.floor(start / 60)).padStart(2, '0')}:${String(start % 60).padStart(2, '0')}`);
             }
-
-            void slotEnd;
         }
 
         return {slots};

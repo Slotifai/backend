@@ -360,6 +360,20 @@ export class AppointmentsService {
         return saved;
     }
 
+    async getAppointment(userId: number, appointmentId: number): Promise<Appointment> {
+        const appointment = await this.appointmentRepository.findOne({
+            where: {id: appointmentId},
+            relations: {client: {user: true}, master: {user: true}, service: true},
+        });
+        if (!appointment) throw new NotFoundException('Appointment not found');
+
+        const isClient = appointment.client?.user?.id === userId;
+        const isMaster = appointment.master?.user?.id === userId;
+        if (!isClient && !isMaster) throw new ForbiddenException('Access denied');
+
+        return appointment;
+    }
+
     async addNote(userId: number, appointmentId: number, dto: AddNoteDto): Promise<AppointmentNote> {
         const master = await this.masterRepository.findOne({where: {user: {id: userId}}});
         if (!master) throw new NotFoundException('Master profile not found');

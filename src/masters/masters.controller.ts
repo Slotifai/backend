@@ -95,13 +95,15 @@ export class MastersController {
 
     @ApiQuery({name: 'date', required: true, description: 'YYYY-MM-DD'})
     @ApiQuery({name: 'serviceId', required: true, type: Number})
+    @ApiQuery({name: 'timezone', required: false, description: 'IANA timezone, e.g. Europe/Kyiv'})
     @Get(':id/availability')
     getAvailability(
         @Param('id', ParseIntPipe) id: number,
         @Query('date') date: string,
         @Query('serviceId', ParseIntPipe) serviceId: number,
+        @Query('timezone') timezone?: string,
     ) {
-        return this.mastersService.getAvailability(id, date, serviceId);
+        return this.mastersService.getAvailability(id, date, serviceId, timezone);
     }
 
     @Get(':id/services')

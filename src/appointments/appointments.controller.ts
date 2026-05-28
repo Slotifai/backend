@@ -82,6 +82,12 @@ export class AppointmentsController {
         return this.appointmentsService.addNote(user.id, id, dto);
     }
 
+    @Roles(UserRole.MASTER, UserRole.CLIENT)
+    @Get(':id')
+    getAppointment(@CurrentUser() user: User, @Param('id', ParseIntPipe) id: number) {
+        return this.appointmentsService.getAppointment(user.id, id);
+    }
+
     @Roles(UserRole.MASTER)
     @Get(':id/notes')
     getNotes(@CurrentUser() user: User, @Param('id', ParseIntPipe) id: number) {
