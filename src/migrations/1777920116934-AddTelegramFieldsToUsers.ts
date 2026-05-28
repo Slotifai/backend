@@ -1,6 +1,6 @@
 import {MigrationInterface, QueryRunner} from 'typeorm';
 
-export class AddTelegramFieldsToUsers1748000000001 implements MigrationInterface {
+export class AddTelegramFieldsToUsers1777920116934 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
             ALTER TABLE users
