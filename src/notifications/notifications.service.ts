@@ -5,6 +5,7 @@ import {Between, Repository} from 'typeorm';
 import {Appointment} from '../common/entities/appointment.entity';
 import {AppointmentStatus} from '../common/entities/appointmentStatus';
 import {MailService} from '../mail/mail.service';
+import {TelegramNotifyService} from '../telegram/telegram-notify.service';
 
 @Injectable()
 export class NotificationsService {
@@ -14,6 +15,7 @@ export class NotificationsService {
         @InjectRepository(Appointment)
         private readonly appointmentRepository: Repository<Appointment>,
         private readonly mailService: MailService,
+        private readonly telegramNotify: TelegramNotifyService,
     ) {
     }
 
@@ -46,6 +48,15 @@ export class NotificationsService {
                 this.logger.log(`Reminder sent for appointment #${appointment.id}`);
             } catch (err) {
                 this.logger.error(`Failed reminder for appointment #${appointment.id}: ${String(err)}`);
+            }
+
+            const clientTgChatId = appointment.client?.user?.telegramChatId;
+            if (clientTgChatId) {
+                void this.telegramNotify.sendReminderMessage(clientTgChatId, {
+                    masterName: appointment.master?.name ?? 'Майстер',
+                    serviceName: appointment.service?.name ?? 'Послуга',
+                    startTime: appointment.startTime,
+                });
             }
         }
     }
