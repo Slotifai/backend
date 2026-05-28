@@ -8,6 +8,7 @@ import {
 import {createHash, randomBytes} from 'crypto';
 import {InjectRepository} from '@nestjs/typeorm';
 import {DataSource, Repository} from 'typeorm';
+
 import {JwtService} from '@nestjs/jwt';
 import {ConfigService} from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
@@ -32,6 +33,10 @@ export class AuthService {
     constructor(
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
+        @InjectRepository(Client)
+        private readonly clientRepository: Repository<Client>,
+        @InjectRepository(Master)
+        private readonly masterRepository: Repository<Master>,
         private readonly jwtService: JwtService,
         private readonly dataSource: DataSource,
         private readonly config: ConfigService,
@@ -41,6 +46,7 @@ export class AuthService {
 
     async registerClient(dto: RegisterClientDto): Promise<{ message: string }> {
         await this.assertEmailFree(dto.email);
+        await this.assertPhoneFree(dto.phone);
         const passwordHash = await bcrypt.hash(dto.password, 12);
         const {token: verifyToken, hash: emailVerifyTokenHash} = this.generateVerifyToken();
 
@@ -70,6 +76,7 @@ export class AuthService {
 
     async registerMaster(dto: RegisterMasterDto): Promise<{ message: string }> {
         await this.assertEmailFree(dto.email);
+        await this.assertPhoneFree(dto.phone);
         const passwordHash = await bcrypt.hash(dto.password, 12);
         const {token: verifyToken, hash: emailVerifyTokenHash} = this.generateVerifyToken();
 
@@ -258,6 +265,16 @@ export class AuthService {
     private async assertEmailFree(email: string): Promise<void> {
         const exists = await this.userRepository.findOne({where: {email}});
         if (exists) throw new ConflictException('Email already in use');
+    }
+
+    private async assertPhoneFree(phone: string): Promise<void> {
+        const [clientExists, masterExists] = await Promise.all([
+            this.clientRepository.findOne({where: {phone}}),
+            this.masterRepository.findOne({where: {phone}}),
+        ]);
+        if (clientExists || masterExists) {
+            throw new ConflictException('Phone number already in use');
+        }
     }
 
     private generateVerifyToken(): { token: string; hash: string } {

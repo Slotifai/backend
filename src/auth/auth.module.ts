@@ -7,6 +7,8 @@ import {AuthService} from './auth.service';
 import {AuthController} from './auth.controller';
 import {JwtStrategy} from './strategies/jwt.strategy';
 import {User} from '../common/entities/user.entity';
+import {Client} from '../common/entities/client.entity';
+import {Master} from '../common/entities/master.entity';
 import {MailModule} from '../mail/mail.module';
 import {TelegramModule} from '../telegram/telegram.module';
 
@@ -21,7 +23,7 @@ import {TelegramModule} from '../telegram/telegram.module';
                 signOptions: {expiresIn: '15m'},
             }),
         }),
-        TypeOrmModule.forFeature([User]),
+        TypeOrmModule.forFeature([User, Client, Master]),
         MailModule,
         TelegramModule,
     ],

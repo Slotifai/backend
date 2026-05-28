@@ -1,5 +1,6 @@
-import {ApiProperty, ApiPropertyOptional} from '@nestjs/swagger';
+import {ApiPropertyOptional} from '@nestjs/swagger';
 import {IsEmail, IsOptional, IsString, Length, MinLength} from 'class-validator';
+import {ApiProperty} from '@nestjs/swagger';
 
 export class RegisterClientDto {
     @ApiProperty({example: 'client@example.com'})
