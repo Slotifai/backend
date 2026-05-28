@@ -1,4 +1,4 @@
-import {BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException} from '@nestjs/common';
+import {BadRequestException, ForbiddenException, forwardRef, Inject, Injectable, Logger, NotFoundException} from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
 import {InjectRepository} from '@nestjs/typeorm';
 import {Repository} from 'typeorm';
@@ -10,6 +10,7 @@ import {Master} from '../common/entities/master.entity';
 import {Service} from '../common/entities/service.entity';
 import {WorkingHours} from '../common/entities/working-hours.entity';
 import {MailService} from '../mail/mail.service';
+import {TelegramNotifyService} from '../telegram/telegram-notify.service';
 import {CreateAppointmentDto} from './dto/create-appointment.dto';
 import {AddNoteDto} from './dto/add-note.dto';
 
@@ -32,6 +33,8 @@ export class AppointmentsService {
         private readonly workingHoursRepository: Repository<WorkingHours>,
         private readonly mailService: MailService,
         private readonly config: ConfigService,
+        @Inject(forwardRef(() => TelegramNotifyService))
+        private readonly telegramNotify: TelegramNotifyService,
     ) {
     }
 
@@ -111,10 +114,97 @@ export class AppointmentsService {
             });
         }
 
+        if (master?.user?.telegramChatId) {
+            void this.telegramNotify.notifyMasterNewBooking(master.user.telegramChatId, {
+                clientName: client.name,
+                serviceName: service.name,
+                startTime,
+            });
+        }
+
         return saved;
     }
 
-    async getMyAppointments(userId: number, page = 1, limit = 20): Promise<{
+    async createAppointmentAsGuest(
+        guest: {name: string; phone: string},
+        dto: CreateAppointmentDto,
+    ): Promise<Appointment> {
+        let client = await this.clientRepository.findOne({where: {phone: guest.phone}});
+        if (!client) {
+            client = await this.clientRepository.save(
+                this.clientRepository.create({name: guest.name, phone: guest.phone}),
+            );
+        }
+
+        return this.createAppointmentForClient(client, dto);
+    }
+
+    private async createAppointmentForClient(client: Client, dto: CreateAppointmentDto): Promise<Appointment> {
+        const service = await this.serviceRepository.findOne({where: {id: dto.serviceId}});
+        if (!service) throw new NotFoundException('Service not found');
+        if (service.masterId !== dto.masterId) {
+            throw new BadRequestException('Service does not belong to the specified master');
+        }
+
+        const startTime = new Date(dto.startTime);
+        const endTime = new Date(startTime.getTime() + service.durationMinutes * 60 * 1000);
+        const dayOfWeek = startTime.getUTCDay();
+
+        const workingHours = await this.workingHoursRepository.findOne({
+            where: {masterId: dto.masterId, dayOfWeek},
+        });
+        if (!workingHours) throw new BadRequestException('Master has no working hours set for this day');
+        if (workingHours.isDayOff) throw new BadRequestException('Master is not working on this day');
+
+        const toMinutes = (time: string): number => {
+            const [h, m] = time.split(':').map(Number);
+            return h * 60 + m;
+        };
+
+        const startMinutes = startTime.getUTCHours() * 60 + startTime.getUTCMinutes();
+        const endMinutes = endTime.getUTCHours() * 60 + endTime.getUTCMinutes();
+        const workStart = toMinutes(workingHours.startTime);
+        const workEnd = toMinutes(workingHours.endTime);
+
+        if (startMinutes < workStart || endMinutes > workEnd) {
+            throw new BadRequestException('Appointment time is outside master working hours');
+        }
+
+        const overlapping = await this.appointmentRepository
+            .createQueryBuilder('a')
+            .where('a.masterId = :masterId', {masterId: dto.masterId})
+            .andWhere('a.status != :cancelled', {cancelled: AppointmentStatus.CANCELLED})
+            .andWhere('a.startTime < :endTime', {endTime})
+            .andWhere('a.endTime > :startTime', {startTime})
+            .getOne();
+
+        if (overlapping) throw new BadRequestException('This time slot is already booked');
+
+        const appointment = this.appointmentRepository.create({
+            clientId: client.id,
+            masterId: dto.masterId,
+            serviceId: dto.serviceId,
+            startTime,
+            endTime,
+            status: AppointmentStatus.SCHEDULED,
+        });
+
+        const saved = await this.appointmentRepository.save(appointment);
+        this.logger.log(`Appointment #${saved.id} created for guest client ${client.id}`);
+
+        const master = await this.masterRepository.findOne({where: {id: dto.masterId}, relations: {user: true}});
+        if (master?.user?.telegramChatId) {
+            void this.telegramNotify.notifyMasterNewBooking(master.user.telegramChatId, {
+                clientName: client.name,
+                serviceName: service.name,
+                startTime,
+            });
+        }
+
+        return saved;
+    }
+
+    async getMyAppointments(userId: number, page = 1, limit = 20, status?: AppointmentStatus): Promise<{
         data: Appointment[];
         total: number;
         page: number;
@@ -123,13 +213,17 @@ export class AppointmentsService {
         const client = await this.clientRepository.findOne({where: {user: {id: userId}}});
         if (!client) throw new NotFoundException('Client profile not found');
 
+        const where: Record<string, unknown> = {clientId: client.id};
+        if (status) where.status = status.toLowerCase();
+
         const [data, total] = await this.appointmentRepository.findAndCount({
-            where: {clientId: client.id},
+            where,
             relations: {service: true, master: true},
             order: {startTime: 'DESC'},
             skip: (page - 1) * limit,
             take: limit,
         });
+
         return {data, total, page, limit};
     }
 
@@ -169,6 +263,20 @@ export class AppointmentsService {
             void this.mailService.sendAppointmentCancelledByMaster(appointment.client.email, details);
         }
 
+        if (isClient && appointment.master?.user?.telegramChatId) {
+            void this.telegramNotify.notifyMasterCancelledByClient(appointment.master.user.telegramChatId, {
+                clientName: details.clientName,
+                serviceName: details.serviceName,
+                startTime: details.startTime,
+            });
+        } else if (isMaster && appointment.client?.user?.telegramChatId) {
+            void this.telegramNotify.notifyClientCancelledByMaster(appointment.client.user.telegramChatId, {
+                masterName: details.masterName,
+                serviceName: details.serviceName,
+                startTime: details.startTime,
+            });
+        }
+
         return saved;
     }
 
@@ -188,7 +296,7 @@ export class AppointmentsService {
             .leftJoinAndSelect('a.client', 'client')
             .where('a.masterId = :masterId', {masterId: master.id});
 
-        if (status) qb.andWhere('a.status = :status', {status});
+        if (status) qb.andWhere('a.status = :status', {status: status.toLowerCase()});
         if (date) {
             const start = new Date(`${date}T00:00:00.000Z`);
             const end = new Date(`${date}T23:59:59.999Z`);
@@ -238,6 +346,14 @@ export class AppointmentsService {
                     serviceName: fullAppointment?.service?.name ?? 'Service',
                     startTime: fullAppointment?.startTime ?? new Date(),
                 }, `${frontendUrl}/appointments/${appointmentId}/review`);
+            }
+            const clientTgChatId = fullAppointment?.client?.user?.telegramChatId;
+            if (clientTgChatId) {
+                void this.telegramNotify.sendReviewPrompt(
+                    clientTgChatId,
+                    appointmentId,
+                    fullAppointment?.master?.name ?? 'Майстер',
+                );
             }
         }
 

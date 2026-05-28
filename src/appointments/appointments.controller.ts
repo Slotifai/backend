@@ -29,13 +29,15 @@ export class AppointmentsController {
     @Roles(UserRole.CLIENT)
     @ApiQuery({name: 'page', required: false, type: Number})
     @ApiQuery({name: 'limit', required: false, type: Number})
+    @ApiQuery({name: 'status', required: false, enum: AppointmentStatus})
     @Get('my')
     getMyAppointments(
         @CurrentUser() user: User,
         @Query('page') page?: string,
         @Query('limit') limit?: string,
+        @Query('status') status?: AppointmentStatus,
     ) {
-        return this.appointmentsService.getMyAppointments(user.id, page ? +page : 1, limit ? +limit : 20);
+        return this.appointmentsService.getMyAppointments(user.id, page ? +page : 1, limit ? +limit : 20, status);
     }
 
     @Roles(UserRole.CLIENT, UserRole.MASTER)
