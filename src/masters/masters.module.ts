@@ -6,10 +6,11 @@ import {Appointment} from '../common/entities/appointment.entity';
 import {Service} from '../common/entities/service.entity';
 import {MastersService} from './masters.service';
 import {MastersController} from './masters.controller';
+import {ServicesService} from '../services/services.service';
 
 @Module({
     imports: [TypeOrmModule.forFeature([Master, WorkingHours, Appointment, Service])],
-    providers: [MastersService],
+    providers: [MastersService, ServicesService],
     controllers: [MastersController],
     exports: [MastersService],
 })
