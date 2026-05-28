@@ -70,6 +70,26 @@ export class ReviewsService {
         return {data, total, average, page, limit};
     }
 
+    async createReviewAsBot(clientId: number, appointmentId: number, rating: number, comment?: string): Promise<Review> {
+        const appointment = await this.appointmentRepository.findOne({where: {id: appointmentId}});
+        if (!appointment) throw new NotFoundException('Appointment not found');
+
+        if (appointment.clientId !== clientId) {
+            throw new ForbiddenException('This appointment does not belong to this client');
+        }
+
+        if (appointment.status !== AppointmentStatus.COMPLETED) {
+            throw new BadRequestException('You can only review completed appointments');
+        }
+
+        const existing = await this.reviewRepository.findOne({where: {appointmentId}});
+        if (existing) throw new BadRequestException('Review already exists for this appointment');
+
+        const review = this.reviewRepository.create({rating, clientId, appointmentId});
+        if (comment !== undefined) review.comment = comment;
+        return this.reviewRepository.save(review);
+    }
+
     async getMyReviews(userId: number): Promise<Review[]> {
         const client = await this.clientRepository.findOne({where: {user: {id: userId}}});
         if (!client) throw new NotFoundException('Client profile not found');

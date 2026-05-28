@@ -76,13 +76,14 @@ export class MastersService {
         return this.workingHoursRepository.save(entries);
     }
 
-    async getPublicProfile(masterId: number): Promise<Master> {
+    async getPublicProfile(masterId: number): Promise<Master & { rating: number; reviewCount: number; minPrice: number | null }> {
         const master = await this.masterRepository.findOne({
             where: {id: masterId},
             relations: {workingHours: true, services: true},
         });
         if (!master) throw new NotFoundException('Master not found');
-        return master;
+        const stats = await this.getMasterStats([masterId]);
+        return {...master, ...(stats.get(masterId) ?? {rating: 0, reviewCount: 0, minPrice: null})};
     }
 
     async getAvailability(masterId: number, date: string, serviceId: number): Promise<{ slots: string[] }> {
@@ -141,7 +142,7 @@ export class MastersService {
         return {slots};
     }
 
-    async findAll(query: QueryMastersDto): Promise<{ data: Master[]; total: number; page: number; limit: number }> {
+    async findAll(query: QueryMastersDto): Promise<{ data: (Master & { rating: number; reviewCount: number; minPrice: number | null })[]; total: number; page: number; limit: number }> {
         const {search, specialization, page = 1, limit = 20} = query;
 
         const where: Record<string, unknown> = {};
@@ -156,6 +157,48 @@ export class MastersService {
             take: limit,
         });
 
-        return {data, total, page, limit};
+        const ids = data.map(m => m.id);
+        const statsMap = ids.length ? await this.getMasterStats(ids) : new Map();
+
+        return {
+            data: data.map(m => ({...m, ...(statsMap.get(m.id) ?? {rating: 0, reviewCount: 0, minPrice: null})})),
+            total,
+            page,
+            limit,
+        };
+    }
+
+    private async getMasterStats(masterIds: number[]): Promise<Map<number, { rating: number; reviewCount: number; minPrice: number | null }>> {
+        if (!masterIds.length) return new Map();
+
+        const ratings = await this.appointmentRepository
+            .createQueryBuilder('a')
+            .innerJoin('a.reviews', 'r')
+            .select('a.masterId', 'masterId')
+            .addSelect('AVG(r.rating)', 'avg')
+            .addSelect('COUNT(r.id)', 'cnt')
+            .where('a.masterId IN (:...ids)', {ids: masterIds})
+            .groupBy('a.masterId')
+            .getRawMany<{ masterId: number; avg: string; cnt: string }>();
+
+        const prices = await this.serviceRepository
+            .createQueryBuilder('s')
+            .select('s.masterId', 'masterId')
+            .addSelect('MIN(s.price)', 'minPrice')
+            .where('s.masterId IN (:...ids)', {ids: masterIds})
+            .groupBy('s.masterId')
+            .getRawMany<{ masterId: number; minPrice: string }>();
+
+        const map = new Map<number, { rating: number; reviewCount: number; minPrice: number | null }>();
+        for (const id of masterIds) {
+            const r = ratings.find(x => Number(x.masterId) === id);
+            const p = prices.find(x => Number(x.masterId) === id);
+            map.set(id, {
+                rating: r ? parseFloat(parseFloat(r.avg).toFixed(2)) : 0,
+                reviewCount: r ? parseInt(r.cnt) : 0,
+                minPrice: p ? parseFloat(p.minPrice) : null,
+            });
+        }
+        return map;
     }
 }

@@ -20,11 +20,15 @@ import {AdminModule} from './admin/admin.module';
 import {ScheduleModule} from '@nestjs/schedule';
 import {NotificationsModule} from './notifications/notifications.module';
 import {AiModule} from './ai/ai.module';
+import {TelegramModule} from './telegram/telegram.module';
+import {TelegramSession} from './telegram/entities/telegram-session.entity';
+import {FavoriteMaster} from './telegram/entities/favorite-master.entity';
+import {SlotWatcher} from './telegram/entities/slot-watcher.entity';
 
 @Module({
     imports: [
         ConfigModule.forRoot({isGlobal: true}),
-        ThrottlerModule.forRoot([{ttl: 60000, limit: 10}]),
+        ThrottlerModule.forRoot([{ttl: 60000, limit: 100}]),
         ScheduleModule.forRoot(),
         TypeOrmModule.forRoot({
             type: 'postgres',
@@ -33,7 +37,7 @@ import {AiModule} from './ai/ai.module';
             username: process.env.DB_USER,
             password: process.env.DB_PASSWORD,
             database: process.env.DB_NAME,
-            entities: [Service, Client, Appointment, Master, WorkingHours, AppointmentNote, Review, User],
+            entities: [Service, Client, Appointment, Master, WorkingHours, AppointmentNote, Review, User, TelegramSession, FavoriteMaster, SlotWatcher],
             migrations: ['dist/migrations/*.js'],
             synchronize: false,
         }),
@@ -46,6 +50,7 @@ import {AiModule} from './ai/ai.module';
         AdminModule,
         NotificationsModule,
         AiModule,
+        TelegramModule,
     ],
 })
 export class AppModule {

@@ -17,7 +17,7 @@ export class UpdateMasterDto {
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    @Length(1, 255)
+    @Length(0, 255)
     specialization?: string;
 
     @ApiPropertyOptional()

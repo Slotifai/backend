@@ -11,6 +11,7 @@ import {MastersController} from './masters.controller';
     imports: [TypeOrmModule.forFeature([Master, WorkingHours, Appointment, Service])],
     providers: [MastersService],
     controllers: [MastersController],
+    exports: [MastersService],
 })
 export class MastersModule {
 }
