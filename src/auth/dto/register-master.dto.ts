@@ -11,10 +11,15 @@ export class RegisterMasterDto {
     @MinLength(6)
     password: string;
 
-    @ApiProperty({example: 'Jane Smith', maxLength: 255})
+    @ApiProperty({example: 'Jane', maxLength: 255})
     @IsString()
     @Length(1, 255)
-    name: string;
+    firstName: string;
+
+    @ApiProperty({example: 'Smith', maxLength: 255})
+    @IsString()
+    @Length(1, 255)
+    lastName: string;
 
     @ApiProperty({example: '+380991234567', maxLength: 20})
     @IsString()

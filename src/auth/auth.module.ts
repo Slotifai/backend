@@ -8,6 +8,7 @@ import {AuthController} from './auth.controller';
 import {JwtStrategy} from './strategies/jwt.strategy';
 import {User} from '../common/entities/user.entity';
 import {MailModule} from '../mail/mail.module';
+import {TelegramModule} from '../telegram/telegram.module';
 
 @Module({
     imports: [
@@ -22,6 +23,7 @@ import {MailModule} from '../mail/mail.module';
         }),
         TypeOrmModule.forFeature([User]),
         MailModule,
+        TelegramModule,
     ],
     providers: [AuthService, JwtStrategy],
     controllers: [AuthController],

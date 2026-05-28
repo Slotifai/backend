@@ -54,7 +54,7 @@ export class AuthService {
             await manager.save(user);
 
             const client = manager.create(Client, {
-                name: dto.name,
+                name: `${dto.firstName} ${dto.lastName}`,
                 phone: dto.phone,
                 email: dto.email,
                 ...(dto.notes !== undefined && {notes: dto.notes}),
@@ -83,7 +83,7 @@ export class AuthService {
             await manager.save(user);
 
             const master = manager.create(Master, {
-                name: dto.name,
+                name: `${dto.firstName} ${dto.lastName}`,
                 phone: dto.phone,
                 email: dto.email,
                 ...(dto.specialization !== undefined && {specialization: dto.specialization}),
@@ -156,25 +156,32 @@ export class AuthService {
         const user = await this.userRepository.findOneOrFail({
             where: {id: userId},
             relations: {client: true, master: true},
-            select: {
-                id: true,
-                email: true,
-                role: true,
-                isEmailVerified: true,
-                createdAt: true,
-                client: {id: true, name: true, phone: true},
-                master: {id: true, name: true, phone: true, specialization: true},
-            },
         });
 
-        const profile = user.client ?? user.master ?? null;
+        let profile: Record<string, unknown> | null = null;
+        if (user.client) {
+            profile = {
+                id: user.client.id,
+                name: user.client.name,
+                phone: user.client.phone,
+            };
+        } else if (user.master) {
+            profile = {
+                id: user.master.id,
+                name: user.master.name,
+                phone: user.master.phone,
+                specialization: user.master.specialization,
+                notes: user.master.notes,
+            };
+        }
+
         return {
             id: user.id,
             email: user.email,
             role: user.role,
             isEmailVerified: user.isEmailVerified,
             createdAt: user.createdAt,
-            profile
+            profile,
         };
     }
 

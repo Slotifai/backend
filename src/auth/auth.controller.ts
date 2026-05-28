@@ -1,7 +1,8 @@
-import {Body, Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards} from '@nestjs/common';
+import {Body, Controller, Get, Header, HttpCode, HttpStatus, Post, Query, UseGuards} from '@nestjs/common';
 import {ApiBearerAuth, ApiOkResponse, ApiTags} from '@nestjs/swagger';
 import {Throttle} from '@nestjs/throttler';
 import {AuthService} from './auth.service';
+import {TelegramLinkService} from '../telegram/telegram-link.service';
 import {RegisterClientDto} from './dto/register-client.dto';
 import {RegisterMasterDto} from './dto/register-master.dto';
 import {LoginDto} from './dto/login.dto';
@@ -16,7 +17,10 @@ import {ThrottlerGuard} from '@nestjs/throttler';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) {
+    constructor(
+        private readonly authService: AuthService,
+        private readonly telegramLinkService: TelegramLinkService,
+    ) {
     }
 
     @UseGuards(ThrottlerGuard)
@@ -90,6 +94,7 @@ export class AuthController {
         },
     })
     @Get('me')
+    @Header('Cache-Control', 'no-store')
     async me(@CurrentUser() user: User) {
         return this.authService.me(user.id);
     }
@@ -100,5 +105,13 @@ export class AuthController {
     @Post('logout')
     async logout(@CurrentUser() user: User) {
         return this.authService.logout(user.id);
+    }
+
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Post('telegram-link-token')
+    async telegramLinkToken(@CurrentUser() user: User) {
+        const token = await this.telegramLinkService.generateLinkToken(user.id);
+        return {token, deepLink: `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=${token}`};
     }
 }

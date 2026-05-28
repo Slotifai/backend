@@ -11,10 +11,15 @@ export class RegisterClientDto {
     @MinLength(6)
     password: string;
 
-    @ApiProperty({example: 'John Doe', maxLength: 255})
+    @ApiProperty({example: 'John', maxLength: 255})
     @IsString()
     @Length(1, 255)
-    name: string;
+    firstName: string;
+
+    @ApiProperty({example: 'Doe', maxLength: 255})
+    @IsString()
+    @Length(1, 255)
+    lastName: string;
 
     @ApiProperty({example: '+380991234567', maxLength: 20})
     @IsString()
