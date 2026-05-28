@@ -41,6 +41,12 @@ export class User {
     @Column({name: 'is_blocked', default: false})
     isBlocked: boolean;
 
+    @Column({name: 'telegram_chat_id', type: 'bigint', nullable: true, unique: true})
+    telegramChatId: string | null;
+
+    @Column({name: 'tg_link_token_hash', type: 'varchar', length: 64, nullable: true, unique: true})
+    tgLinkTokenHash: string | null;
+
     @CreateDateColumn({name: 'created_at'})
     createdAt: Date;
 

@@ -9,17 +9,20 @@ import {WorkingHours} from './common/entities/working-hours.entity';
 import {AppointmentNote} from './common/entities/appointment-note.entity';
 import {Review} from './common/entities/review.entity';
 import {User} from './common/entities/user.entity';
+import {TelegramSession} from './telegram/entities/telegram-session.entity';
+import {FavoriteMaster} from './telegram/entities/favorite-master.entity';
+import {SlotWatcher} from './telegram/entities/slot-watcher.entity';
 
 dotenv.config();
 
 export const AppDataSource = new DataSource({
     type: 'postgres',
-    host: process.env.DB_HOST,
+    host: process.env.DB_HOST || 'localhost',
     port: Number(process.env.DB_PORT) || 5432,
     username: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    entities: [Service, Client, Appointment, Master, WorkingHours, AppointmentNote, Review, User],
+    entities: [Service, Client, Appointment, Master, WorkingHours, AppointmentNote, Review, User, TelegramSession, FavoriteMaster, SlotWatcher],
     migrations: ['src/migrations/*.ts'],
     synchronize: false,
 });
