@@ -18,7 +18,7 @@ export class AiController {
 
     @Post('recommend')
     @UseGuards(ThrottlerGuard, JwtAuthGuard, RolesGuard)
-    @Roles(UserRole.CLIENT)
+    @Roles(UserRole.CLIENT, UserRole.MASTER)
     @Throttle({default: {ttl: 60000, limit: 5}})
     @HttpCode(200)
     recommend(@Body() dto: ChatRequestDto): Promise<ChatResponseDto> {
