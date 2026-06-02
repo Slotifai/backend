@@ -20,4 +20,5 @@ export interface BookingSessionData {
     pendingReviewAppointmentId?: number;
     pendingReviewRating?: number;
     linkedUserId?: number | null;
+    linkedUserRole?: 'CLIENT' | 'MASTER' | null;
 }

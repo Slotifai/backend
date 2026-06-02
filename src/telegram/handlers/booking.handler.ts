@@ -37,7 +37,7 @@ export class BookingHandler {
         bot.callbackQuery('book_cancel', async (ctx) => {
             await ctx.answerCallbackQuery();
             ctx.session.step = 'IDLE';
-            await ctx.reply('Запис скасовано.', {reply_markup: mainMenuKeyboard()});
+            await ctx.reply('Запис скасовано.', {reply_markup: mainMenuKeyboard(ctx.session.linkedUserRole)});
         });
 
         bot.callbackQuery(/^book_type:(.+)$/, async (ctx) => {
@@ -158,7 +158,7 @@ export class BookingHandler {
             });
 
             if (result.data.length === 0) {
-                await ctx.reply('Майстрів не знайдено.', {reply_markup: mainMenuKeyboard()});
+                await ctx.reply('Майстрів не знайдено.', {reply_markup: mainMenuKeyboard(ctx.session.linkedUserRole)});
                 ctx.session.step = 'IDLE';
                 return;
             }
@@ -292,7 +292,7 @@ export class BookingHandler {
                 startTime: ctx.session.selectedSlot!,
             });
             ctx.session.step = 'IDLE';
-            await ctx.reply('🎉 Запис успішно створено!', {reply_markup: mainMenuKeyboard()});
+            await ctx.reply('🎉 Запис успішно створено!', {reply_markup: mainMenuKeyboard(ctx.session.linkedUserRole)});
         } catch (err) {
             await ctx.reply(`❌ Не вдалося створити запис: ${err instanceof Error ? err.message : 'Помилка'}`);
         }
@@ -312,7 +312,7 @@ export class BookingHandler {
                 },
             );
             ctx.session.step = 'IDLE';
-            await ctx.reply('🎉 Запис успішно створено!', {reply_markup: mainMenuKeyboard()});
+            await ctx.reply('🎉 Запис успішно створено!', {reply_markup: mainMenuKeyboard(ctx.session.linkedUserRole)});
         } catch (err) {
             await ctx.reply(`❌ Не вдалося створити запис: ${err instanceof Error ? err.message : 'Помилка'}`);
         }

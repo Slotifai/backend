@@ -26,7 +26,7 @@ export class MasterWeekHandler {
                 const upcoming = data.filter((a) => a.startTime >= now && a.startTime <= weekEnd);
 
                 if (!upcoming.length) {
-                    await ctx.reply('На найближчий тиждень записів немає.', {reply_markup: mainMenuKeyboard()});
+                    await ctx.reply('На найближчий тиждень записів немає.', {reply_markup: mainMenuKeyboard(ctx.session.linkedUserRole)});
                     return;
                 }
 
@@ -48,7 +48,7 @@ export class MasterWeekHandler {
 
                 await ctx.reply(`<b>Розклад на тиждень:</b>\n\n${parts.join('\n\n')}`, {
                     parse_mode: 'HTML',
-                    reply_markup: mainMenuKeyboard(),
+                    reply_markup: mainMenuKeyboard(ctx.session.linkedUserRole),
                 });
             } catch {
                 await ctx.reply('Помилка завантаження розкладу.');

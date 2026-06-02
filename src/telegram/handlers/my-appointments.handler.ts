@@ -22,7 +22,7 @@ export class MyAppointmentsHandler {
                 const upcoming = data.filter((a) => a.status === AppointmentStatus.SCHEDULED);
 
                 if (!upcoming.length) {
-                    await ctx.reply('У вас немає майбутніх записів.', {reply_markup: mainMenuKeyboard()});
+                    await ctx.reply('У вас немає майбутніх записів.', {reply_markup: mainMenuKeyboard(ctx.session.linkedUserRole)});
                     return;
                 }
 

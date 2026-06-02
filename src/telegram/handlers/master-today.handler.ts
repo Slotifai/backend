@@ -23,7 +23,7 @@ export class MasterTodayHandler {
                 );
 
                 if (!data.length) {
-                    await ctx.reply('На сьогодні записів немає.', {reply_markup: mainMenuKeyboard()});
+                    await ctx.reply('На сьогодні записів немає.', {reply_markup: mainMenuKeyboard(ctx.session.linkedUserRole)});
                     return;
                 }
 
@@ -34,7 +34,7 @@ export class MasterTodayHandler {
 
                 await ctx.reply(`<b>Розклад на сьогодні:</b>\n\n${lines.join('\n')}`, {
                     parse_mode: 'HTML',
-                    reply_markup: mainMenuKeyboard(),
+                    reply_markup: mainMenuKeyboard(ctx.session.linkedUserRole),
                 });
             } catch {
                 await ctx.reply('Помилка завантаження розкладу.');

@@ -22,7 +22,7 @@ export class HistoryHandler {
                 const past = data.filter((a) => a.status !== AppointmentStatus.SCHEDULED);
 
                 if (!past.length) {
-                    await ctx.reply('Історія записів порожня.', {reply_markup: mainMenuKeyboard()});
+                    await ctx.reply('Історія записів порожня.', {reply_markup: mainMenuKeyboard(ctx.session.linkedUserRole)});
                     return;
                 }
 
@@ -34,7 +34,7 @@ export class HistoryHandler {
 
                 await ctx.reply(`<b>Історія записів:</b>\n\n${lines.join('\n')}`, {
                     parse_mode: 'HTML',
-                    reply_markup: mainMenuKeyboard(),
+                    reply_markup: mainMenuKeyboard(ctx.session.linkedUserRole),
                 });
             } catch {
                 await ctx.reply('Помилка завантаження історії.');

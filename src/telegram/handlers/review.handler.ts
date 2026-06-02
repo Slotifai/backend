@@ -69,7 +69,7 @@ export class ReviewHandler {
             ctx.session.pendingReviewAppointmentId = undefined;
             ctx.session.pendingReviewRating = undefined;
             await ctx.reply(`✅ Відгук збережено! Дякуємо за оцінку ${'⭐'.repeat(rating)}`, {
-                reply_markup: mainMenuKeyboard(),
+                reply_markup: mainMenuKeyboard(ctx.session.linkedUserRole),
             });
         } catch (err) {
             ctx.session.step = 'IDLE';

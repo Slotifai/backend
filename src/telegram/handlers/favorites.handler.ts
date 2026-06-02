@@ -29,7 +29,7 @@ export class FavoritesHandler {
                 });
 
                 if (!favorites.length) {
-                    await ctx.reply('У вас немає улюблених майстрів.', {reply_markup: mainMenuKeyboard()});
+                    await ctx.reply('У вас немає улюблених майстрів.', {reply_markup: mainMenuKeyboard(ctx.session.linkedUserRole)});
                     return;
                 }
 
@@ -89,7 +89,7 @@ export class FavoritesHandler {
         bot.callbackQuery('main_menu', async (ctx) => {
             await ctx.answerCallbackQuery();
             ctx.session.step = 'IDLE';
-            await ctx.reply('Головне меню:', {reply_markup: mainMenuKeyboard()});
+            await ctx.reply('Головне меню:', {reply_markup: mainMenuKeyboard(ctx.session.linkedUserRole)});
         });
     }
 }
