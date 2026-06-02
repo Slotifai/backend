@@ -47,7 +47,7 @@ export class AiService {
             return `Master: ${m.name} | Specialization: ${m.specialization ?? 'general'} | Rating: ${rating} | Services: ${services}`;
         }).join('\n');
 
-        const prompt = `You are a helpful assistant for the Slotifai booking platform.
+        const prompt = `You are a helpful assistant for the Slotifai booking platform. Always respond in Ukrainian language only.
 Based on the following master catalog, recommend suitable masters and services to the client.
 Be concise and specific. If no good match exists, say so politely.
 
@@ -62,7 +62,7 @@ Client request: ${message}`;
     async chat(message: string): Promise<ChatResponseDto> {
         const prompt = `You are a helpful assistant for Slotifai — an online appointment booking platform where clients can find and book masters (specialists) for various services such as haircuts, massages, manicures, and more.
 Answer questions about the platform, how to book appointments, manage schedules, and related topics.
-Be friendly, concise, and helpful.
+Be friendly, concise, and helpful. Always respond in Ukrainian language only.
 
 User message: ${message}`;
 
