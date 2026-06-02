@@ -60,7 +60,6 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
     }
 
     private setupBot(): void {
-        // Session middleware with DB adapter
         this.bot.use(
             session({
                 initial: (): BookingSessionData => ({step: 'IDLE', linkedUserId: null}),
@@ -68,29 +67,24 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
             }),
         );
 
-        // Restore linkedUserId from DB on each update if not set
         this.bot.use(async (ctx, next) => {
             if (!ctx.session.linkedUserId && ctx.from) {
                 const chatId = String(ctx.chat?.id ?? ctx.from.id);
-                // Restore from session data (already done via storage adapter)
                 void chatId;
             }
             return next();
         });
 
-        // Register all handlers
         this.registerHandlers();
 
-        // Global error handler
         this.bot.catch((err) => {
             this.logger.error(`Bot error: ${String(err)}`);
         });
     }
 
     private registerHandlers(): void {
-        // Order matters: more specific handlers first
         this.startHandler.register(this.bot);
-        this.reviewHandler.register(this.bot);   // before text handler in booking
+        this.reviewHandler.register(this.bot);
         this.bookingHandler.register(this.bot);
         this.myAppointmentsHandler.register(this.bot);
         this.historyHandler.register(this.bot);

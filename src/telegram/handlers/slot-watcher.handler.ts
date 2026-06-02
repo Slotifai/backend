@@ -3,7 +3,7 @@ import {Bot} from 'grammy';
 import {Cron} from '@nestjs/schedule';
 import {InjectRepository} from '@nestjs/typeorm';
 import {Repository} from 'typeorm';
-import {BotContext} from '../telegram-bot.service';
+import {BotContext} from '../telegram.types';
 import {SlotWatcher} from '../entities/slot-watcher.entity';
 import {MastersService} from '../../masters/masters.service';
 import {TelegramNotifyService} from '../telegram-notify.service';
@@ -77,7 +77,6 @@ export class SlotWatcherHandler {
                             break;
                         }
                     } catch {
-                        // skip
                     }
                 }
 
