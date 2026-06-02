@@ -18,7 +18,10 @@ export class HistoryHandler {
                     return;
                 }
 
-                const {data} = await this.appointmentsService.getMyAppointments(ctx.session.linkedUserId, 1, 20);
+                const isMaster = ctx.session.linkedUserRole === 'MASTER';
+                const {data} = isMaster
+                    ? await this.appointmentsService.getMasterAppointments(ctx.session.linkedUserId, 1, 20)
+                    : await this.appointmentsService.getMyAppointments(ctx.session.linkedUserId, 1, 20);
                 const past = data.filter((a) => a.status !== AppointmentStatus.SCHEDULED);
 
                 if (!past.length) {

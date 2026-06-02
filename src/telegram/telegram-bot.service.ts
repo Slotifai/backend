@@ -70,7 +70,7 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
         );
 
         this.bot.use(async (ctx, next) => {
-            if (!ctx.session.linkedUserId && ctx.from) {
+            if ((!ctx.session.linkedUserId || !ctx.session.linkedUserRole) && ctx.from) {
                 const chatId = String(ctx.chat?.id ?? ctx.from.id);
                 const user = await this.linkService.findUserByChatId(chatId);
                 if (user) {
