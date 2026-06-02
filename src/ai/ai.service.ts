@@ -60,11 +60,51 @@ Client request: ${message}`;
     }
 
     async chat(message: string): Promise<ChatResponseDto> {
-        const prompt = `You are a helpful assistant for Slotifai — an online appointment booking platform where clients can find and book masters (specialists) for various services such as haircuts, massages, manicures, and more.
-Answer questions about the platform, how to book appointments, manage schedules, and related topics.
-Be friendly, concise, and helpful. Always respond in Ukrainian language only.
+        const masters = await this.masterRepository.find({relations: {services: true}});
 
-User message: ${message}`;
+        const ratingsRaw = await this.reviewRepository
+            .createQueryBuilder('r')
+            .innerJoin('r.appointment', 'a')
+            .select('a.masterId', 'masterId')
+            .addSelect('AVG(r.rating)', 'avg')
+            .addSelect('COUNT(r.id)', 'cnt')
+            .groupBy('a.masterId')
+            .getRawMany<{masterId: number; avg: string; cnt: string}>();
+
+        const ratingMap = new Map(ratingsRaw.map(r => [r.masterId, {
+            avg: parseFloat(parseFloat(r.avg).toFixed(2)),
+            cnt: parseInt(r.cnt),
+        }]));
+
+        const catalog = masters.length
+            ? masters.map(m => {
+                const r = ratingMap.get(m.id);
+                const rating = r ? `${r.avg}/5 (${r.cnt} відгуків)` : 'немає відгуків';
+                const services = m.services.length
+                    ? m.services.map(s => `${s.name} — ${s.durationMinutes} хв, ${s.price} грн`).join('; ')
+                    : 'послуги не вказані';
+                return `- ${m.name}${m.specialization ? ` (${m.specialization})` : ''} | Рейтинг: ${rating} | Послуги: ${services}`;
+            }).join('\n')
+            : 'майстрів поки немає';
+
+        const prompt = `Ти — помічник платформи Slotifai для онлайн-запису до майстрів. Відповідай ТІЛЬКИ українською мовою.
+
+Платформа дозволяє:
+- переглядати майстрів та їх послуги
+- записуватися до майстра на зручний час
+- переглядати та скасовувати свої записи
+- залишати відгуки після відвідування
+- майстри керують своїм профілем, послугами та розкладом
+
+НЕ існує: фільтрів по місту, карти, пошуку салонів — тільки індивідуальні майстри.
+
+Актуальний список майстрів на платформі:
+${catalog}
+
+Якщо питання не стосується платформи або того що в ній є — чесно скажи що такого функціоналу немає.
+Відповідай коротко і по суті.
+
+Питання користувача: ${message}`;
 
         return this.callGroq(prompt);
     }
