@@ -49,13 +49,9 @@ export class BookingHandler {
                 ctx.session.masterPage = 0;
                 await this.showMasterList(ctx);
             } else {
-                ctx.session.step = 'AWAITING_SPECIALIZATION';
-                await ctx.reply('Введіть спеціалізацію (або натисніть "Пропустити"):',
-                    {
-                        reply_markup: {
-                            inline_keyboard: [[{text: 'Пропустити', callback_data: 'spec_skip'}]],
-                        },
-                    });
+                ctx.session.step = 'AWAITING_MASTER_SELECT';
+                ctx.session.masterPage = 0;
+                await this.showSpecializationChoice(ctx);
             }
         });
 
@@ -70,6 +66,14 @@ export class BookingHandler {
             ctx.session.step = 'AWAITING_MASTER_SELECT';
             ctx.session.masterPage = 0;
             await this.showMasterList(ctx);
+        });
+
+        bot.callbackQuery(/^spec:(.+)$/, async (ctx) => {
+            await ctx.answerCallbackQuery();
+            const specialization = ctx.match[1] === '_any' ? undefined : ctx.match[1];
+            ctx.session.step = 'AWAITING_MASTER_SELECT';
+            ctx.session.masterPage = 0;
+            await this.showMasterList(ctx, specialization);
         });
 
         bot.callbackQuery(/^master:(\d+)$/, async (ctx) => {
@@ -111,21 +115,17 @@ export class BookingHandler {
             }
         });
 
-        bot.on('message:text', async (ctx) => {
+        bot.on('message:text', async (ctx, next) => {
             const text = ctx.message.text;
             if (text.startsWith('/') || text.startsWith('📅') || text.startsWith('📋') ||
                 text.startsWith('📜') || text.startsWith('⭐') || text.startsWith('👨') ||
                 text.startsWith('📆') || text.startsWith('🏠')) {
-                return;
+                return next();
             }
 
             const step = ctx.session.step;
 
-            if (step === 'AWAITING_SPECIALIZATION') {
-                ctx.session.step = 'AWAITING_MASTER_SELECT';
-                ctx.session.masterPage = 0;
-                await this.showMasterList(ctx, text);
-            } else if (step === 'AWAITING_GUEST_NAME') {
+            if (step === 'AWAITING_GUEST_NAME') {
                 ctx.session.guestName = text;
                 ctx.session.step = 'AWAITING_GUEST_PHONE';
                 await ctx.reply('Введіть ваш номер телефону:');
@@ -134,6 +134,18 @@ export class BookingHandler {
                 await this.createBookingForGuest(ctx);
             }
         });
+    }
+
+    private async showSpecializationChoice(ctx: BotContext): Promise<void> {
+        try {
+            const specs = await this.mastersService.getDistinctSpecializations();
+            const buttons = specs.map((s) => [{text: s, callback_data: `spec:${s}`}]);
+            buttons.push([{text: '🔍 Будь-яка спеціалізація', callback_data: 'spec:_any'}]);
+            buttons.push([{text: '❌ Скасувати', callback_data: 'book_cancel'}]);
+            await ctx.reply('Оберіть спеціалізацію:', {reply_markup: {inline_keyboard: buttons}});
+        } catch {
+            await ctx.reply('Помилка завантаження спеціалізацій.');
+        }
     }
 
     private async showMasterList(ctx: BotContext, specialization?: string): Promise<void> {

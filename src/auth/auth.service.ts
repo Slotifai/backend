@@ -188,6 +188,7 @@ export class AuthService {
             role: user.role,
             isEmailVerified: user.isEmailVerified,
             createdAt: user.createdAt,
+            telegramLinked: !!user.telegramChatId,
             profile,
         };
     }

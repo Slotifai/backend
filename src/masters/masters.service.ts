@@ -179,6 +179,16 @@ export class MastersService {
         };
     }
 
+    async getDistinctSpecializations(): Promise<string[]> {
+        const rows = await this.masterRepository
+            .createQueryBuilder('m')
+            .select('DISTINCT m.specialization', 'spec')
+            .where('m.specialization IS NOT NULL AND m.specialization != \'\'')
+            .orderBy('m.specialization', 'ASC')
+            .getRawMany<{ spec: string }>();
+        return rows.map((r) => r.spec);
+    }
+
     private async getMasterStats(masterIds: number[]): Promise<Map<number, { rating: number; reviewCount: number; minPrice: number | null }>> {
         if (!masterIds.length) return new Map();
 
