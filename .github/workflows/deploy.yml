@@ -32,9 +32,7 @@ jobs:
             set -e
             cd /var/www/backend
 
-            if [ ! -f .env ]; then
-              echo "${{ secrets.ENV_FILE }}" > .env
-            fi
+            echo "${{ secrets.ENV_FILE }}" > .env
 
             docker compose up -d db
             docker compose --profile migrate run --rm migrator
