@@ -1,5 +1,5 @@
 import {ApiPropertyOptional} from '@nestjs/swagger';
-import {IsEmail, IsOptional, IsString, Length, MinLength} from 'class-validator';
+import {IsEmail, IsOptional, IsString, Length, Matches, MinLength} from 'class-validator';
 import {ApiProperty} from '@nestjs/swagger';
 
 export class RegisterClientDto {
@@ -22,9 +22,9 @@ export class RegisterClientDto {
     @Length(1, 255)
     lastName: string;
 
-    @ApiProperty({example: '+380991234567', maxLength: 20})
+    @ApiProperty({example: '+380991234567'})
     @IsString()
-    @Length(1, 20)
+    @Matches(/^\+38\d{10}$/, {message: 'Phone must be in format +38XXXXXXXXXX'})
     phone: string;
 
     @ApiPropertyOptional({example: 'Prefers morning slots'})

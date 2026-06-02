@@ -1,4 +1,4 @@
-import {IsOptional, IsString, Length} from 'class-validator';
+import {IsOptional, IsString, Length, Matches} from 'class-validator';
 import {ApiPropertyOptional} from '@nestjs/swagger';
 
 export class UpdateMasterDto {
@@ -8,10 +8,10 @@ export class UpdateMasterDto {
     @Length(1, 255)
     name?: string;
 
-    @ApiPropertyOptional()
+    @ApiPropertyOptional({example: '+380991234567'})
     @IsOptional()
     @IsString()
-    @Length(1, 20)
+    @Matches(/^\+38\d{10}$/, {message: 'Phone must be in format +38XXXXXXXXXX'})
     phone?: string;
 
     @ApiPropertyOptional()
