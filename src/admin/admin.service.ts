@@ -20,9 +20,11 @@ export class AdminService {
     }
 
     async getUsers(page = 1, limit = 20, role?: UserRole, search?: string) {
-        const qb = this.userRepository.createQueryBuilder('u');
+        const qb = this.userRepository.createQueryBuilder('u')
+            .leftJoinAndSelect('u.client', 'client')
+            .leftJoinAndSelect('u.master', 'master');
         if (role) qb.andWhere('u.role = :role', {role});
-        if (search) qb.andWhere('u.email ILIKE :search', {search: `%${search}%`});
+        if (search) qb.andWhere('(u.email ILIKE :search OR client.name ILIKE :search OR master.name ILIKE :search)', {search: `%${search}%`});
 
         const [data, total] = await qb
             .orderBy('u.createdAt', 'DESC')
