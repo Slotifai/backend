@@ -5,6 +5,7 @@ import {BookingSessionData} from './dto/booking-state.dto';
 import {BotContext} from './telegram.types';
 import {TelegramSessionService} from './telegram-session.service';
 import {TelegramNotifyService} from './telegram-notify.service';
+import {TelegramLinkService} from './telegram-link.service';
 import {StartHandler} from './handlers/start.handler';
 import {BookingHandler} from './handlers/booking.handler';
 import {MyAppointmentsHandler} from './handlers/my-appointments.handler';
@@ -27,6 +28,7 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
         private readonly config: ConfigService,
         private readonly sessionService: TelegramSessionService,
         private readonly notifyService: TelegramNotifyService,
+        private readonly linkService: TelegramLinkService,
         private readonly startHandler: StartHandler,
         private readonly bookingHandler: BookingHandler,
         private readonly myAppointmentsHandler: MyAppointmentsHandler,
@@ -70,7 +72,11 @@ export class TelegramBotService implements OnModuleInit, OnModuleDestroy {
         this.bot.use(async (ctx, next) => {
             if (!ctx.session.linkedUserId && ctx.from) {
                 const chatId = String(ctx.chat?.id ?? ctx.from.id);
-                void chatId;
+                const user = await this.linkService.findUserByChatId(chatId);
+                if (user) {
+                    ctx.session.linkedUserId = user.id;
+                    ctx.session.linkedUserRole = user.role.toUpperCase() as 'CLIENT' | 'MASTER';
+                }
             }
             return next();
         });
