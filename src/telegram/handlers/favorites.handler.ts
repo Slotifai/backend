@@ -21,6 +21,10 @@ export class FavoritesHandler {
                     await ctx.reply('⚠️ Для перегляду улюблених необхідно прив\'язати акаунт.');
                     return;
                 }
+                if (ctx.session.linkedUserRole === 'MASTER') {
+                    await ctx.reply('Ця функція недоступна для майстрів.');
+                    return;
+                }
 
                 const favorites = await this.favoritesRepository.find({
                     where: {userId: ctx.session.linkedUserId},

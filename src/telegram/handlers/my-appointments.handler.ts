@@ -38,12 +38,14 @@ export class MyAppointmentsHandler {
                         `⏰ Час: ${time}`,
                         {
                             parse_mode: 'HTML',
-                            reply_markup: {
-                                inline_keyboard: [
-                                    [{text: '❌ Скасувати', callback_data: `cancel_appt:${appt.id}`}],
-                                    [{text: '🔄 Перезаписатися', callback_data: `rebook:${appt.id}`}],
-                                ],
-                            },
+                            ...(isMaster ? {} : {
+                                reply_markup: {
+                                    inline_keyboard: [
+                                        [{text: '❌ Скасувати', callback_data: `cancel_appt:${appt.id}`}],
+                                        [{text: '🔄 Перезаписатися', callback_data: `rebook:${appt.id}`}],
+                                    ],
+                                },
+                            }),
                         },
                     );
                 }

@@ -59,10 +59,12 @@ export class StartHandler {
 export function mainMenuKeyboard(role?: 'CLIENT' | 'MASTER' | null) {
     const isMaster = role === 'MASTER';
     const keyboard: {text: string}[][] = [
-        [{text: '📅 Записатися'}],
         [{text: '📋 Мої записи'}, {text: '📜 Історія'}],
-        [{text: '⭐ Улюблені майстри'}],
     ];
+    if (!isMaster) {
+        keyboard.push([{text: '📅 Записатися'}]);
+        keyboard.push([{text: '⭐ Улюблені майстри'}]);
+    }
     if (isMaster) {
         keyboard.push([{text: '👨‍🔧 Розклад на сьогодні'}, {text: '📆 Розклад на тиждень'}]);
     }
