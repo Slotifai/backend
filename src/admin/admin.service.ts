@@ -4,7 +4,6 @@ import {Repository} from 'typeorm';
 import {User} from '../common/entities/user.entity';
 import {Appointment} from '../common/entities/appointment.entity';
 import {Master} from '../common/entities/master.entity';
-import {Client} from '../common/entities/client.entity';
 import {UserRole} from '../common/enums/user-role';
 import {AppointmentStatus} from '../common/entities/appointmentStatus';
 
@@ -17,8 +16,6 @@ export class AdminService {
         private readonly appointmentRepository: Repository<Appointment>,
         @InjectRepository(Master)
         private readonly masterRepository: Repository<Master>,
-        @InjectRepository(Client)
-        private readonly clientRepository: Repository<Client>,
     ) {
     }
 
@@ -48,12 +45,6 @@ export class AdminService {
     async deleteUser(userId: number): Promise<void> {
         const user = await this.userRepository.findOne({where: {id: userId}});
         if (!user) throw new NotFoundException('User not found');
-        const client = await this.clientRepository.findOne({where: {user: {id: userId}}});
-        const master = await this.masterRepository.findOne({where: {user: {id: userId}}});
-        if (client) await this.appointmentRepository.delete({clientId: client.id});
-        if (master) await this.appointmentRepository.delete({masterId: master.id});
-        if (client) await this.clientRepository.delete({id: client.id});
-        if (master) await this.masterRepository.delete({id: master.id});
         await this.userRepository.remove(user);
     }
 
