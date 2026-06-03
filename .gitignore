@@ -19,3 +19,4 @@ coverage
 *.pid.lock
 .vscode
 .cache
+uploads/

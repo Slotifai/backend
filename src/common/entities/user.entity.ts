@@ -47,6 +47,9 @@ export class User {
     @Column({name: 'tg_link_token_hash', type: 'varchar', length: 64, nullable: true, unique: true})
     tgLinkTokenHash: string | null;
 
+    @Column({name: 'avatar_url', type: 'varchar', length: 500, nullable: true})
+    avatarUrl: string | null;
+
     @CreateDateColumn({name: 'created_at'})
     createdAt: Date;
 

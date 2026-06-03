@@ -2,6 +2,8 @@ import {Module} from '@nestjs/common';
 import {ConfigModule} from '@nestjs/config';
 import {ThrottlerModule} from '@nestjs/throttler';
 import {TypeOrmModule} from '@nestjs/typeorm';
+import {ServeStaticModule} from '@nestjs/serve-static';
+import {join} from 'path';
 import {Service} from './common/entities/service.entity';
 import {Client} from './common/entities/client.entity';
 import {Appointment} from './common/entities/appointment.entity';
@@ -24,12 +26,14 @@ import {TelegramModule} from './telegram/telegram.module';
 import {TelegramSession} from './telegram/entities/telegram-session.entity';
 import {FavoriteMaster} from './telegram/entities/favorite-master.entity';
 import {SlotWatcher} from './telegram/entities/slot-watcher.entity';
+import {UsersModule} from './users/users.module';
 
 @Module({
     imports: [
         ConfigModule.forRoot({isGlobal: true}),
         ThrottlerModule.forRoot([{ttl: 60000, limit: 100}]),
         ScheduleModule.forRoot(),
+        ServeStaticModule.forRoot({rootPath: join(process.cwd(), 'uploads'), serveRoot: '/uploads', serveStaticOptions: {index: false, fallthrough: false}}),
         TypeOrmModule.forRoot({
             type: 'postgres',
             host: process.env.DB_HOST,
@@ -51,6 +55,7 @@ import {SlotWatcher} from './telegram/entities/slot-watcher.entity';
         NotificationsModule,
         AiModule,
         TelegramModule,
+        UsersModule,
     ],
 })
 export class AppModule {
