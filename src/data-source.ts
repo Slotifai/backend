@@ -23,6 +23,6 @@ export const AppDataSource = new DataSource({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     entities: [Service, Client, Appointment, Master, WorkingHours, AppointmentNote, Review, User, TelegramSession, FavoriteMaster, SlotWatcher],
-    migrations: ['src/migrations/*.ts'],
+    migrations: [__dirname + '/migrations/*.js'],
     synchronize: false,
 });
